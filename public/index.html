@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Chakrachain</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/uikit@latest/dist/css/uikit.min.css"
+    />
+    <style>
+      .uk-container-small {
+        max-width: 47rem;
+      }
+    </style>
+
+    <script src="https://bundle.run/buffer@6.0.3"></script>
+    <script src="https://unpkg.com/msgpackr@1.2.5/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.socket.io/3.1.1/socket.io.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/cards.css">
+    
+    <script src="nacl.js"></script>
+    <script src="crypto.js"></script>
+  </head>
+
+  <body data-uk-filter="target: .js-filter; animation: fade">
+    <page></page>
+
+    <script src="servers.html" type="riot"></script>
+    <script src="todo.html" type="riot"></script>
+    <script src="account.html" type="riot"></script>
+    <script src="page.html" type="riot"></script>
+    <script src="https://cdn.jsdelivr.net/npm/riot@5/riot+compiler.min.js"></script>
+
+    <script>
+      
+      try {
+        window.keyPair = JSON.parse(window.localStorage.getItem("keys"));
+      } catch (e) {}
+      if (!keyPair) {
+        window.keyPair = sign.keyPair();
+        keyPair.secretKey = buffer.Buffer.from(keyPair.secretKey).toString(
+          "hex"
+        );
+        keyPair.publicKey = buffer.Buffer.from(keyPair.publicKey).toString(
+          "hex"
+        );
+        window.localStorage.setItem("keys", JSON.stringify(keyPair));
+      }
+      window.socket = io();
+      const contractPath =
+        "path=contracts-0ebd8087442a81030913fe9a9177834a4f1091809e890e50de2ff0cc525e1a56";
+      const run = async () => {
+        console.log(riot.mount("page", {
+          publicKey: keyPair.publicKey
+        }));
+      };
+      riot.compile().then(run);
+    </script>
+		<script src="https://cdn.jsdelivr.net/npm/uikit@latest/dist/js/uikit.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/uikit@latest/dist/js/uikit-icons.min.js"></script>
+  </body>
+</html>
