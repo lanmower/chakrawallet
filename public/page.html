@@ -1,0 +1,182 @@
+<page>
+  <div>
+    <!--HEADER-->
+    <header id="site-head">
+      <div class="uk-container uk-container-expand">
+        <div class="uk-grid uk-grid-medium uk-flex uk-flex-center" data-uk-grid>
+          <div class="uk-width-expand">
+            <form id="search-form" action="">
+              <div class="uk-inline uk-width-1-1">
+                <span
+                  class="uk-form-icon uk-form-icon-flip"
+                  data-uk-icon="icon: search"
+                ></span>
+                <input
+                  class="uk-input uk-width-1-1 search-fld"
+                  type="text"
+                  placeholder="Type your search"
+                  autofocus
+                />
+                <a
+                  hidden
+                  href="#"
+                  class="search-filter"
+                  data-uk-filter-control="[data-tags*='']"
+                  >Search</a
+                >
+                <a
+                  hidden
+                  href="#"
+                  class="search-filter-all"
+                  data-uk-filter-control
+                  >Search all</a
+                >
+                <a
+                  hidden
+                  href="#"
+                  class="search-filter-none"
+                  data-uk-filter-control="[data-empty='']"
+                  >Filter none</a
+                >
+              </div>
+            </form>
+          </div>
+          <div class="uk-width-auto">
+            <ul class="uk-subnav" data-uk-margin>
+              <li class="uk-visible@s">
+                <div class="uk-width-auto">
+                  <a href="#" class="uk-logo" title="" onclick="{e=>edit('servers', 'page')}"
+                    ><img
+                      width="96"
+                      src="https://i.imgflip.com/4zjqoa.jpg"
+                      alt="discord list"
+                  /></a>
+                </div>
+              </li>
+              <li>
+                <div class="uk-width-auto">
+                  <a href="#" class="uk-logo" title="" onclick="{e=>edit('account', 'page')}"
+                    ><img
+                      width="96"
+                      src="https://www.pngrepo.com/png/187903/180/rich.png"
+                      alt="balances"
+                  /></a>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+    <!--/HEADER-->
+    <div class="spacer"></div>
+    <!--CARDS WRAPPER-->
+    <servers
+      if="{state.page == 'servers'}"
+      hashtags="{state.hashtags}"
+      pools="{state.servers}"
+    ></servers>
+    <account
+      if="{state.page == 'account'}"
+      balances="{state.balances}"
+      pools="{state.pools}"
+      publicKey="{props.publicKey}"
+    ></account>
+
+    <!--/CARDS WRAPPER-->
+    <!--FOOTER-->
+    <footer
+      id="site-foot"
+      class="uk-section uk-section-secondary uk-section-xsmall"
+    >
+      <div class="uk-container uk-text-small uk-text-center">
+        <a href="https://discord.gg/sdCukUSKQH">Created by ROOT</a> | Built with
+        CHAKRACHAIN
+      </div>
+    </footer>
+    <!--/FOOTER-->
+  </div>
+
+  <script>
+    //axios.get(`https://discordapp.com/api/guilds/367741339393327104/widget.json`).then(console.log);
+    //
+    const subs = [];
+    const getBalances = async update => {
+      const balances = [];
+      const types = (await axios.get(
+        `ls?${contractPath}-accounts-${keyPair.publicKey}`
+      )).data;
+      for (type of types) {
+        const balance = (await axios.get(
+          `get?${contractPath}-balances-${type}-${keyPair.publicKey}`
+        )).data;
+        const subpath = contractPath.replace("path=", "");
+        if (!subs[type]) {
+          socket.emit(
+            "subscribe",
+            `${subpath}-balances-${type}-${keyPair.publicKey}`
+          );
+          socket.on(
+            `update-${subpath}-balances-${type}-${keyPair.publicKey}`,
+            () => {
+              getBalances(update);
+            }
+          );
+          subs[type] = true;
+        }
+        if (balance) {
+          balances.push(balance);
+
+          if (balances.length) update({ balances });
+        }
+      }
+      return balances;
+    };
+    const getPools = async (update, state) => {
+      let pools = state.pools || [];
+      let hashtags = [];
+      pools = (await axios.get(`pools`)).data
+      let servers = pools.filter(
+        p => typeof p.token.invite == "object"
+      );
+
+      for (pool of servers) {
+        pool.hashtags = [];
+        const h = pool.token.invite.d.split(" ").filter(v => v.startsWith("#"));
+        for (hash of h) {
+          hashtags[hash]=(hashtags[hash]||0)+1
+          const h = hash.replace("#", "");
+          pool.hashtags.push(h);
+        }
+        hashtags.sort().length=20;
+      }
+      const out = [];
+      for(h in hashtags) out.push(h)
+      update({ pools, servers, hashtags:out });
+      return pools;
+    };
+    export default {
+      async onBeforeMount(props, state) {
+        this.state = {
+          page: "servers",
+          pools: [],
+          publicKey: props.publicKey,
+          balances: []
+        };
+        getPools(data => {
+          this.update(data);
+        }, state);
+        getBalances(i => {
+          this.update(i);
+        });
+      },
+      edit(e, field = "page") {
+        console.log(e, field);
+        const update = {};
+        update[field] = e;
+        this.update(update);
+        console.log(this.state);
+      }
+    };
+  </script>
+</page>

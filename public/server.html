@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Riot todo</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="htsth: 47rem;
+      }
+    </style>
+  </head>
+
+  <body style="background-color:#111">
+    <todo></todo>
+
+    <script src="todo.html" type="riot"></script>
+    <script src="https://cdn.jsdelivr.net/npm/riot@5/riot+compiler.min.js"></script>
+
+    <script>
+      riot.compile().then(() => {
+        riot.mount("todo", {
+          title: "I want to behave!",
+          item: {
+            header: "Avoid excessive caffeine",
+            summary: "This is a summary",
+            done: true
+          }
+        });
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@latest/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@latest/dist/js/uikit-icons.min.js"></script>
+  </body>
+</html>

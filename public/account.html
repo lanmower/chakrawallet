@@ -1,0 +1,330 @@
+<account>
+  <div class="uk-margin-top uk-container uk-container-small uk-card uk-card-default">
+      
+    <span if="{!(props.balances?props.balances.length:0)}">
+      Head over to the root discord <a href="https://discord.gg/sdCukUSKQH"> to get some starting tradables!</a>
+      <button uk-toggle="target: #key" class="uk-button uk-button-secondary">
+        Account
+      </button>
+    </span>
+
+    <span if="{(props.balances?props.balances.length:0)}" class="uk-card-header">
+      <div class="uk-flex uk-flex-center uk-margin-top">
+        <ul class="uk-subnav uk-subnav-pill">
+          <li class='uk-button' uk-toggle="target: #send-modal">
+            Send
+          </li>
+          <li class='uk-button' uk-toggle="target: #key">
+            Account
+          </li>
+          <li class='uk-button' uk-toggle="target: #create">
+            Create
+          </li>
+          <li class='uk-button' uk-toggle="target: #issue">
+            Issue
+          </li>
+          <li class='uk-button' uk-toggle="target: #pools">
+            Pools
+          </li>
+          <li class='uk-button' uk-toggle="target: #swap">
+            Swap
+          </li>
+        </ul>
+        
+      </div>
+
+      <div id="send-modal" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body">
+          <h2 class="uk-modal-title">SEND</h2>
+          Type:
+          <select class="uk-select" onclick="{editSymbol}">
+            <option each="{balance in props.balances}" value="{balance.symbol}"
+              >{balance.symbol}</option
+            >
+          </select>
+          Discord ID or account address to send to:<input
+            class="uk-input"
+            onkeyup="{editDest}"
+            onchange="{editDest}"
+            value="{state.dest}"
+          /><br />
+          Amount:<input
+            class="uk-input"
+            onkeyup="{edit}"
+            onchange="{edit}"
+            value="{state.amnt}"
+          /><br />
+          <button
+            class="uk-button uk-modal-close"
+            data-balance="{balance}"
+            onclick="{send}"
+          >
+            SEND
+          </button>
+        </div>
+      </div>
+    </span>
+    <div id="swap" uk-modal>
+      <div class="uk-modal-dialog uk-modal-body">
+        <h2 class="uk-modal-title">SWAP</h2>
+        <h6>
+          Swap one tradable for another
+        </h6>
+        <div class="uk-flex">
+          <input
+            class="uk-input"
+            onkeyup="{editSwapAmnt}"
+            onchange="{editSwapAmnt}"
+            value="{state.swapamnt}"
+          />
+          <select class="uk-select" onclick="{editSwap1}">
+            <option each="{balance in props.balances}" value="{balance.symbol}"
+              >{balance.symbol}</option
+            >
+          </select>
+          <select class="uk-select" onclick="{editSwap2}">
+            <option value="C">C</option>
+            <option each="{pool in props.pools}" value="{pool.token.symbol}"
+              >{pool.token.symbol}</option
+            >
+          </select>
+          <button class="uk-button" onclick="{ sendSwap }">Swap</button>
+        </div>
+        <div>
+          <table
+            class="uk-table uk-table-striped uk-table-condensed uk-text-nowrap"
+          >
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Amount</th>
+                <th>{window.ROOT_TOKEN} Amount</th>
+                <th>Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr each="{ pool in props.pools }">
+                <td>{pool.name}</td>
+                <td>{pool.pool[pool.name]}</td>
+                <td>{pool.pool[window.ROOT_TOKEN]}</td>
+                <td>{(pool.ratio).toFixed(4)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div id="pools" uk-modal>
+      <div class="uk-modal-dialog uk-modal-body">
+        <h2 class="uk-modal-title">POOL</h2>
+        <h6>
+          Pool a token against C
+        </h6>
+        <div class="uk-flex">
+          <input
+            class="uk-input"
+            onkeyup="{editPoolAmnt}"
+            onchange="{editPoolAmnt}"
+            value="{state.poolamnt}"
+          />
+          <select class="uk-select" onclick="{editPool}">
+            <option each="{balance in props.balances}" value="{balance.symbol}"
+              >{balance.symbol}</option
+            >
+          </select>
+          <div class="uk-inline">
+            <span class="uk-form-icon">C</span>
+            <input
+              class="uk-input"
+              onkeyup="{ editPoolRootAmnt }"
+              onchange="{ editPoolRootAmnt }"
+              value="{ state.poolrootamnt }"
+            />
+          </div>
+          <button class="uk-button uk-modal-close" onclick="{ sendPool }">
+            Pool
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="key" uk-modal>
+      <div class="uk-modal-dialog uk-modal-body">
+        <h2 class="uk-modal-title">Account</h2>
+        <p>
+          Address
+          <div class="uk-width-auto">
+            {props.publicKey}
+          </div>
+        </p>
+        <p>
+        <div class="uk-button uk-padding-remove" uk-toggle="target: #password">
+          Password
+        </div>
+        <div id="password" class="uk-flex " hidden>
+          <input class="uk-input" onkeyup="{editKey}" onchange="{editKey}"value="{state.key}" />
+          <button class="uk-button" onclick="{ saveKey }">Change</button>
+        </p>        
+          
+        </div>
+      </div>
+    </div>
+    <div id="create" uk-modal>
+      <div class="uk-modal-dialog uk-modal-body">
+        <h2 class="uk-modal-title">CREATE</h2>
+        Name:
+        <div class="uk-flex">
+        <input class="uk-input" onkeyup="{editCreate}" onchange="{editCreate}" value="{state.create}" />
+        <button class="uk-button uk-modal-close" onclick="{ sendCreate }">
+          Create
+        </button>
+        </div>
+      </div>
+    </div>
+    <div id="issue" uk-modal>
+      <div class="uk-modal-dialog uk-modal-body">
+        <h2 class="uk-modal-title">ISSUE</h2>
+        Name:
+        <div class="uk-flex">
+          <input class="uk-input" onkeyup="{editIssue}" onchange="{editIssue}" value="{state.issue}" />
+          <button class="uk-button uk-modal-close" onclick="{ sendIssue }">
+            Issue
+          </button>
+        </div>
+      </div>
+    </div>
+    <div if="{props.balances.length}">
+      <table
+        class="uk-table uk-table-striped uk-table-condensed uk-text-nowrap"
+      >
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr each="{balance in props.balances}">
+            <td>{balance.symbol}</td>
+            <td>{balance.balance}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    const subs = {};
+
+    export default {
+      async onBeforeMount(props, state) {
+        this.state = {
+          item: props.item,
+          amnt: "0.0",
+          dest: "",
+          symbol:
+            props.balances && props.balances.length
+              ? props.balances[0].symbol
+              : "",
+          keyState: "none",
+          createState: "none",
+          create: "",
+          pool:
+            props.balances && props.balances.length
+              ? props.balances[0].symbol
+              : "",
+          poolamnt: "0.0",
+          poolrootamnt: "0.0",
+          swapamnt: "0.0",
+          key: window.keyPair.secretKey,
+          keyState: "none",
+          createState: "none"
+        };
+        //this.update(this.state);
+      },
+      editSymbol(e) {
+        this.update({ symbol: e.target.value });
+      },
+      editDest(e, d) {
+        this.update({ dest: e.target.value });
+      },
+      edit(e) {
+        this.update({ amnt: e.target.value });
+      },
+      editKey(e) {
+        this.update({ key: e.target.value });
+      },
+      editIssue(e) {
+        this.update({ issue: e.target.value });
+      },
+      editPool(e) {
+        this.update({ pool: e.target.value });
+      },
+      editSwap1(e) {
+        this.update({ swap1: e.target.value });
+      },
+      editSwap2(e) {
+        this.update({ swap2: e.target.value });
+      },
+      editSwapAmnt(e) {
+        this.update({ swapamnt: e.target.value });
+      },
+      editPoolAmnt(e) {
+        this.update({ poolamnt: e.target.value });
+      },
+      editPoolRootAmnt(e) {
+        this.update({ poolrootamnt: e.target.value });
+      },
+      editCreate(e) {
+        this.update({ create: e.target.value });
+      },
+      saveKey(e) {
+        try {
+          const keyPair = sign.keyPair.fromSecretKey(
+            buffer.Buffer.from(this.state.key, "hex")
+          );
+          keyPair.secretKey = buffer.Buffer.from(keyPair.secretKey).toString(
+            "hex"
+          );
+          keyPair.publicKey = buffer.Buffer.from(keyPair.publicKey).toString(
+            "hex"
+          );
+          if (keyPair)
+            window.localStorage.setItem("keys", JSON.stringify(keyPair));
+        } catch (e) {
+          alert("bad key");
+        }
+      },
+      send(balance) {
+        transact("transfer", [
+          this.state.dest,
+          this.state.amnt,
+          this.state.symbol
+        ]);
+      },
+      sendCreate() {
+        transact("create", [this.state.create]);
+      },
+      sendIssue() {
+        transact("issue", [this.state.issue]);
+      },
+      sendSwap() {
+        console.log("swap", [
+          this.state.swapamnt,
+          this.state.swap1,
+          this.state.swap2
+        ]);
+        transact("swap", [
+          this.state.swapamnt,
+          this.state.swap1,
+          this.state.swap2
+        ]);
+      },
+      sendPool() {
+        transact("pool", [
+          this.state.poolamnt,
+          this.state.pool,
+          this.state.poolrootamnt
+        ]);
+      }
+    };
+  </script>
+</account>

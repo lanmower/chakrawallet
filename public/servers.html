@@ -1,0 +1,135 @@
+<servers>
+  <div class="uk-container uk-container-expand uk-margin-large-bottom">
+    <ul class="uk-subnav uk-subnav-pill uk-margin-top uk-flex uk-flex-center">
+      <li class="uk-active" data-uk-filter-control="">
+        <a href="#">Show All</a>
+      </li>
+      <li
+        data-uk-filter-control="{hash.replace('#','.')}"
+        each="{hash in props.hashtags}"
+      >
+        <a href="#">{hash}</a>
+      </li>
+    </ul>
+
+    <div
+      class="uk-grid uk-grid-medium uk-child-width-1-1@s uk-child-width-1-2@m uk-child-width-1-4@l  uk-child-width-1-5@xl uk-grid-match js-filter"
+      data-uk-grid="masonry: true"
+    >
+      <!-- card -->
+      <div
+        each="{pool in props.pools}"
+        if="{typeof pool.token.invite == 'object'}"
+        class="{pool.hashtags.join(' ')}"
+        data-tags="{pool.token.invite.d}"
+      >
+        <div class="uk-card uk-card-default">
+          <div class="uk-card-header">
+            <div class="uk-flex-center uk-flex uk-margin-bottom uk-margin-top">
+              <img
+                data-src="{pool.token.invite.i}"
+                class="uk-border-circle lazy"
+                data-width="400"
+                data-height="300"
+                data-uk-img
+                alt=""
+                src="{pool.token.invite.i}"
+              />
+            </div>
+          </div>
+
+          <div class="uk-card-body">
+            <div class="uk-width-expand">
+              <h3 class="uk-margin-remove-bottom">{pool.token.invite.n}</h3>
+              <p class="uk-text-meta uk-margin-remove-top">
+                <time datetime="2016-04-01T19:00">April 01, 2016</time>
+              </p>
+            </div>
+            <p class="uk-text-small uk-text-muted">
+              {pool.token.invite.d}
+            </p>
+          </div>
+          <div class="uk-card-footer">
+            <div
+              class="uk-grid uk-grid-small uk-grid-divider uk-flex uk-flex-middle"
+              data-uk-grid
+            >
+              <a
+                class="uk-width-expand uk-text-small"
+                href="https://discord.gg/{pool.token.invite.c}"
+              >
+                Join Discord
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /card -->
+    </div>
+  </div>
+  <script>
+    export default {
+      onMounted(props, state) {
+        const util = UIkit.util;
+        const search = util.$(".search-fld");
+        const searchVal = util.$(".search-filter");
+        const searchValAll = util.$(".search-filter-all");
+        const searchValNone = util.$(".search-filter-none");
+        const filterBtn = util.$$("li[data-uk-filter-control] a");
+        const formEl = util.$("#search-form");
+        let debounce, searchTerm, value;
+
+        // when write on field
+        util.on(search, "keyup", () => {
+          clearTimeout(debounce);
+
+          debounce = setTimeout(() => {
+            // get input value and convert to lower case
+            value = search.value.toLowerCase();
+
+            if (value.length) {
+              searchTerm = '[data-tags*="' + value + '"]';
+              util.attr(searchVal, "data-uk-filter-control", searchTerm);
+              // click on hidden link that gives 0 results, allow to click again filter link
+              searchValNone.click();
+              // click hidden link that filter the search
+              searchVal.click();
+            } else {
+              // if search field is empty
+              searchTerm = '[data-tags*=""]';
+              // empty attribute
+              util.attr(searchVal, "data-uk-filter-control", searchTerm);
+              // click hidden show all link
+              searchValAll.click();
+            }
+          }, 300);
+        });
+
+        // prevent send form on press enter
+        util.on(formEl, "keypress", e => {
+          const key = e.charCode || e.keyCode || 0;
+          if (key == 13) {
+            e.preventDefault();
+            console.log("Prevent submit on press enter");
+          }
+        });
+
+        // empty field and attribute on click filter button
+        util.on(filterBtn, "click", () => {
+          if (search.value.length) {
+            // empty field
+            search.value = "";
+            searchTerm = '[data-tags*=""]';
+            // empty attribute
+            util.attr(searchVal, "data-uk-filter-control", searchTerm);
+            console.log("empty field and attribute");
+          }
+        });
+
+        util.on(searchValNone, "click", e => {
+          e.preventDefault();
+        });
+      }
+    };
+  </script>
+</servers>
