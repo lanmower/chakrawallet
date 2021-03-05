@@ -6,10 +6,10 @@ const fs = require("fs");
 const bodyParser = require("body-parser");
 const Hyperdrive = require("hyperdrive");
 const pump = require("pump");
-const pubsub = require("./hyperpubsub.js")('chakrachain');
+const pubsub = require("./hyperpubsub.js")("chakrachain");
 
 const key = Buffer.from(
-  "09b580a5a97b529364040a601b0ceb3b2ba539a884d0037753823c3557395a51",
+  process.env.HYPERDRIVEKEY||"09b580a5a97b529364040a601b0ceb3b2ba539a884d0037753823c3557395a51",
   "hex"
 );
 const hyperswarm = require("hyperswarm");
@@ -54,15 +54,7 @@ sio.on("connection", function(socket) {
     console.log("A user connected");
     sockets[socket.id] = socket;
     const watches = [];
-    global.drive.watch(
-      "/contracts/0ebd8087442a81030913fe9a9177834a4f1091809e890e50de2ff0cc525e1a56/balances/ROOT/7438ac2b487eadfc784392194e72a6c248f8bcdb4d957e8081550011ef2b394a",
-      () => {
-        console.log(
-          "update",
-          "/contracts/0ebd8087442a81030913fe9a9177834a4f1091809e890e50de2ff0cc525e1a56/balances/ROOT/7438ac2b487eadfc784392194e72a6c248f8bcdb4d957e8081550011ef2b394a"
-        );
-      }
-    );
+
     socket.on("subscribe", function(path) {
       console.log("subscribe", path);
       const watch = global.drive.watch("/" + path.replaceAll("-", "/"), () => {
@@ -82,8 +74,8 @@ sio.on("connection", function(socket) {
 });
 
 const ROOT_TOKEN = "C";
-const contractPath =
-  "contracts-0ebd8087442a81030913fe9a9177834a4f1091809e890e50de2ff0cc525e1a56";
+const contractPath = "contracts-0ebd8087442a81030913fe9a9177834a4f1091809e890e50de2ff0cc525e1a56";
+
 app.get("/pools", async (req, res) => {
   const pools = [];
   for (let file of await io.ls(`${contractPath}-pool`)) {
@@ -102,42 +94,24 @@ app.get("/pools", async (req, res) => {
   return res.send(JSON.stringify(ret));
 });
 
-const run = ()=>{
-  var http = require("http");
-  var options = {
-    host: "discordapp.com",
-    path: `/api/guilds/367741339393327104/widget.json`
-  };
-  console.log(options)
-
-  callback = function(response) {
-    var str = "";
-    response.on("data", function(chunk) {
-      str += chunk;
-    });
-    response.on("end", function() {
-      console.log(str);
-      //res.send(str)
-    });
-  };
-  http.request(options, callback).end();
-}
-run();
-app.get("/guild", async (req, res) => {
-});
 app.get("/ls", async (req, res) => {
   const ret = await io.ls(req.query.path);
   return res.send(JSON.stringify(ret));
 });
+
 app.get("/get", async (req, res) => {
   const ret = await io.read(req.query.path);
   return res.send(JSON.stringify(ret));
 });
+
 app.post("/transfer", async (req, res) => {
   const body = req.body;
-  const out = {transaction:Buffer.from(req.body.data, 'hex').toString('binary'),publicKey:req.body.publicKey};
-  
-  pubsub.emit('transaction', out);
+  const out = {
+    tx: Buffer.from(req.body.data, "hex").toString("binary"),
+    pk: req.body.publicKey
+  };
+  console.log(out);
+  pubsub.emit("tx", out);
   //ipfs.pubsub.publish("chakrachain-transactions", packr.pack(body));
   return res.send(
     JSON.stringify({ response: "POST HTTP method on user resource" })

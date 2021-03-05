@@ -101,11 +101,25 @@
     //axios.get(`https://discordapp.com/api/guilds/367741339393327104/widget.json`).then(console.log);
     //
     const subs = [];
+    const handles = [];
     const getBalances = async update => {
       const balances = [];
+      //while(handles.length) await socket.removeAllListeners(handles.pop());
       const types = (await axios.get(
         `ls?${contractPath}-accounts-${keyPair.publicKey}`
       )).data;
+      const p = `${contractPath.replace("path=", "")}-accounts-${keyPair.publicKey}`;
+      if(!subs.includes(p)) {
+        subs.push(p);
+        socket.emit("subscribe", p);
+        socket.on(
+          `update-${p}`,
+          () => {
+            getBalances(update);
+          }
+        );
+      }
+      
       for (type of types) {
         const balance = (await axios.get(
           `get?${contractPath}-balances-${type}-${keyPair.publicKey}`
@@ -116,6 +130,7 @@
             "subscribe",
             `${subpath}-balances-${type}-${keyPair.publicKey}`
           );
+          const p = `update-${subpath}-balances-${type}-${keyPair.publicKey}`;
           socket.on(
             `update-${subpath}-balances-${type}-${keyPair.publicKey}`,
             () => {

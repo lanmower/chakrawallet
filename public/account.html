@@ -1,17 +1,22 @@
 <account>
-  <div class="uk-margin-top uk-container uk-container-small uk-card uk-card-default">
+  <div class="uk-margin-top uk-container uk-container-small uk-card uk-card-default uk-container-small">
       
-    <span if="{!(props.balances?props.balances.length:0)}">
-      Head over to the root discord <a href="https://discord.gg/sdCukUSKQH"> to get some starting tradables!</a>
-      <button uk-toggle="target: #key" class="uk-button uk-button-secondary">
-        Account
-      </button>
+    <span class="uk-card-header" if="{!(props.balances?props.balances.length:0)}">
+      <b>Your address:</b>
+      <div class="uk-width-auto">
+        {props.publicKey}
+      </div>
+      Your account is currently empty, send it a tradable to display more options.
+      <p class="uk-card-body">
+        Head over to the one of the listed discords to get some starting tradables!
+      </p>
     </span>
 
     <span if="{(props.balances?props.balances.length:0)}" class="uk-card-header">
+        
       <div class="uk-flex uk-flex-center uk-margin-top">
         <ul class="uk-subnav uk-subnav-pill">
-          <li class='uk-button' uk-toggle="target: #send-modal">
+          <li class='uk-button' uk-toggle="target: #send">
             Send
           </li>
           <li class='uk-button' uk-toggle="target: #key">
@@ -32,26 +37,44 @@
         </ul>
         
       </div>
+    <div if="{props.balances.length}" class="uk-card-body uk-flex uk-flex-center">
+      <table
+        class="uk-table uk-table-striped uk-table-condensed uk-text-nowrap uk-container-small"
+      >
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr each="{balance in props.balances}">
+            <td>{balance.symbol}</td>
+            <td>{balance.balance}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-      <div id="send-modal" uk-modal>
+      <div id="send" uk-modal>
         <div class="uk-modal-dialog uk-modal-body">
           <h2 class="uk-modal-title">SEND</h2>
           Type:
-          <select class="uk-select" onclick="{editSymbol}">
+          <select class="uk-select" onclick="{(e)=>{edit(e,'amnt')}}">
             <option each="{balance in props.balances}" value="{balance.symbol}"
               >{balance.symbol}</option
             >
           </select>
           Discord ID or account address to send to:<input
             class="uk-input"
-            onkeyup="{editDest}"
-            onchange="{editDest}"
+            onkeyup="{(e)=>{edit(e,'dest')}}"
+            onchange="{(e)=>{edit(e,'dest')}}"
             value="{state.dest}"
           /><br />
           Amount:<input
             class="uk-input"
-            onkeyup="{edit}"
-            onchange="{edit}"
+            onkeyup="{(e)=>{edit(e,'amnt')}}"
+            onchange="{(e)=>{edit(e,'amnt')}}"
             value="{state.amnt}"
           /><br />
           <button
@@ -73,16 +96,16 @@
         <div class="uk-flex">
           <input
             class="uk-input"
-            onkeyup="{editSwapAmnt}"
-            onchange="{editSwapAmnt}"
+            onkeyup="{(e)=>{edit(e,'swapAmnt')}}"
+            onchange="{(e)=>{edit(e,'swapAmnt')}}"
             value="{state.swapamnt}"
           />
-          <select class="uk-select" onclick="{editSwap1}">
+          <select class="uk-select" onclick="{(e)=>{edit(e,'swap')}}">
             <option each="{balance in props.balances}" value="{balance.symbol}"
               >{balance.symbol}</option
             >
           </select>
-          <select class="uk-select" onclick="{editSwap2}">
+          <select class="uk-select" onclick="{(e)=>{edit(e,'swap2')}}">
             <option value="C">C</option>
             <option each="{pool in props.pools}" value="{pool.token.symbol}"
               >{pool.token.symbol}</option
@@ -123,11 +146,11 @@
         <div class="uk-flex">
           <input
             class="uk-input"
-            onkeyup="{editPoolAmnt}"
-            onchange="{editPoolAmnt}"
+            onkeyup="{(e)=>{edit(e,'poolAmnt')}}"
+            onchange="{(e)=>{edit(e,'poolAmnt')}}"
             value="{state.poolamnt}"
           />
-          <select class="uk-select" onclick="{editPool}">
+          <select class="uk-select" onclick="{(e)=>{edit(e,'pool')}}">
             <option each="{balance in props.balances}" value="{balance.symbol}"
               >{balance.symbol}</option
             >
@@ -136,8 +159,8 @@
             <span class="uk-form-icon">C</span>
             <input
               class="uk-input"
-              onkeyup="{ editPoolRootAmnt }"
-              onchange="{ editPoolRootAmnt }"
+              onkeyup="{(e)=>{edit(e,'poolRootAmnt')}}"
+              onchange="{(e)=>{edit(e,'poolRootAmnt')}}"
               value="{ state.poolrootamnt }"
             />
           </div>
@@ -161,8 +184,9 @@
           Password
         </div>
         <div id="password" class="uk-flex " hidden>
-          <input class="uk-input" onkeyup="{editKey}" onchange="{editKey}"value="{state.key}" />
+          <input class="uk-input" onkeyup="{(e)=>{edit(e,'key')}}" onchange="{(e)=>{edit(e,'key')}}" value="{state.key}" />
           <button class="uk-button" onclick="{ saveKey }">Change</button>
+        </div>
         </p>        
           
         </div>
@@ -173,7 +197,7 @@
         <h2 class="uk-modal-title">CREATE</h2>
         Name:
         <div class="uk-flex">
-        <input class="uk-input" onkeyup="{editCreate}" onchange="{editCreate}" value="{state.create}" />
+        <input class="uk-input" onkeyup="{(e)=>{edit(e,'create')}}" onchange="{(e)=>{edit(e,'create')}}" value="{state.create}" />
         <button class="uk-button uk-modal-close" onclick="{ sendCreate }">
           Create
         </button>
@@ -185,33 +209,14 @@
         <h2 class="uk-modal-title">ISSUE</h2>
         Name:
         <div class="uk-flex">
-          <input class="uk-input" onkeyup="{editIssue}" onchange="{editIssue}" value="{state.issue}" />
+          <input class="uk-input" onkeyup="{(e)=>{edit(e,'issue')}}" onchange="{(e)=>{edit(e,'issue')}}" value="{state.issue}" />
           <button class="uk-button uk-modal-close" onclick="{ sendIssue }">
             Issue
           </button>
         </div>
       </div>
     </div>
-    <div if="{props.balances.length}">
-      <table
-        class="uk-table uk-table-striped uk-table-condensed uk-text-nowrap"
-      >
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr each="{balance in props.balances}">
-            <td>{balance.symbol}</td>
-            <td>{balance.balance}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <script>
+<script>
     const subs = {};
 
     export default {
@@ -240,41 +245,11 @@
         };
         //this.update(this.state);
       },
-      editSymbol(e) {
-        this.update({ symbol: e.target.value });
-      },
-      editDest(e, d) {
-        this.update({ dest: e.target.value });
-      },
-      edit(e) {
-        this.update({ amnt: e.target.value });
-      },
-      editKey(e) {
-        this.update({ key: e.target.value });
-      },
-      editIssue(e) {
-        this.update({ issue: e.target.value });
-      },
-      editPool(e) {
-        this.update({ pool: e.target.value });
-      },
-      editSwap1(e) {
-        this.update({ swap1: e.target.value });
-      },
-      editSwap2(e) {
-        this.update({ swap2: e.target.value });
-      },
-      editSwapAmnt(e) {
-        this.update({ swapamnt: e.target.value });
-      },
-      editPoolAmnt(e) {
-        this.update({ poolamnt: e.target.value });
-      },
-      editPoolRootAmnt(e) {
-        this.update({ poolrootamnt: e.target.value });
-      },
-      editCreate(e) {
-        this.update({ create: e.target.value });
+      edit(e, key) {
+        const upd = {};
+        upd[key] = e.target.value;
+        console.log(key, 'updated')
+        this.update(upd);
       },
       saveKey(e) {
         try {
@@ -294,11 +269,13 @@
         }
       },
       send(balance) {
-        transact("transfer", [
+        console.log(this.state);
+        const out = [
           this.state.dest,
           this.state.amnt,
           this.state.symbol
-        ]);
+        ];
+        transact("transfer", out);
       },
       sendCreate() {
         transact("create", [this.state.create]);
@@ -307,11 +284,6 @@
         transact("issue", [this.state.issue]);
       },
       sendSwap() {
-        console.log("swap", [
-          this.state.swapamnt,
-          this.state.swap1,
-          this.state.swap2
-        ]);
         transact("swap", [
           this.state.swapamnt,
           this.state.swap1,
