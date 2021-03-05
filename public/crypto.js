@@ -23,7 +23,7 @@ window.lverify = (msg, key) => {
 
 
 
-window.transact = (action, payload)=>{
+window.transact = (a, i)=>{
   var xhr = new XMLHttpRequest();
   var url = "transfer";
   xhr.open("POST", url, true);
@@ -34,8 +34,9 @@ window.transact = (action, payload)=>{
       console.log(json.email + ", " + json.password);
     }
   };
+  console.log({ c: '0ebd8087442a81030913fe9a9177834a4f1091809e890e50de2ff0cc525e1a56', a, i})
   const data = JSON.stringify({
-    data: buffer.Buffer.from(lsign({ contract: '0ebd8087442a81030913fe9a9177834a4f1091809e890e50de2ff0cc525e1a56', action, payload, id:new Date().getTime()}, keyPair.secretKey)).toString("hex"),
+    data: buffer.Buffer.from(lsign({ c: '0ebd8087442a81030913fe9a9177834a4f1091809e890e50de2ff0cc525e1a56', a, i}, keyPair.secretKey)).toString("hex"),
     publicKey: keyPair.publicKey
   });
   xhr.send(data);
